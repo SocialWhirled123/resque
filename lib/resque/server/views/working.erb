@@ -74,7 +74,7 @@
         
         <td>
           <% if status["total"] && status["total"] > 0 %>
-            <%= (status["num"] / status["total"] * 100).round %>%
+            <%= (status["num"] * 100 / status["total"]).round %>%
           <% end %>
         </td>
         <td class="process"><small class="queue"><%= status["options"] %></small></td>
