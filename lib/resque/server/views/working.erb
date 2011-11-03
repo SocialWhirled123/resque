@@ -4,7 +4,7 @@
   <table>
     <tr>
       <th>&nbsp;</th>
-      <th>Where</th>
+      <th>Where1</th>
       <th>Queue</th>
       <th>Started</th>
       <th>Class</th>
@@ -30,7 +30,8 @@
   <%
     workers = resque.working
     jobs = workers.collect {|w| w.job }
-    worker_jobs = workers.zip(jobs)
+    status = jobs.collect {|j| Resque::Status.get(j["payload"]["args"].first) }
+    worker_jobs = workers.zip(jobs, status)
     worker_jobs = worker_jobs.reject { |w, j| w.idle? }
   %>
 
@@ -42,14 +43,16 @@
       <th>Where</th>
       <th>Queue</th>
       <th>Processing</th>
+      <th>%Done</th>
+      <th>Args</th>
     </tr>
     <% if worker_jobs.empty? %>
     <tr>
-      <td colspan="4" class='no-data'>Nothing is happening right now...</td>
+      <td colspan="6" class='no-data'>Nothing is happening right now...</td>
     </tr>
     <% end %>
 
-    <% worker_jobs.sort_by {|w, j| j['run_at'] ? j['run_at'] : '' }.each do |worker, job| %>
+    <% worker_jobs.sort_by {|w, j, s| j['run_at'] ? j['run_at'] : '' }.each do |worker, job, status| %>
       <tr>
         <td class='icon'><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
         <% host, pid, queues = worker.to_s.split(':') %>
@@ -61,10 +64,21 @@
           <% if job['queue'] %>
             <code><%= job['payload']['class'] %></code>
             <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= job['run_at'] %></a></small>
+            
+            <div><small class="queue"><%= status["message"] %></small></div>
+            
           <% else %>
             <span class='waiting'>Waiting for a job...</span>
           <% end %>
         </td>
+        
+        <td>
+          <% if status["total"] && status["total"] > 0 %>
+            <%= (status["num"] / status["total"] * 100).round %>%
+          <% end %>
+        </td>
+        <td class="process"><small class="queue"><%= status["options"] %></small></td>
+        
       </tr>
     <% end %>
   </table>
