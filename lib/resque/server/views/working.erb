@@ -65,7 +65,7 @@
             <code><%= job['payload']['class'] %></code>
             <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= job['run_at'] %></a></small>
             
-            <div><small class="queue"><%= status["message"] %></small></div>
+            <div><small class="queue"><%= status["message"] if status %></small></div>
             
           <% else %>
             <span class='waiting'>Waiting for a job...</span>
@@ -73,11 +73,11 @@
         </td>
         
         <td>
-          <% if status["total"] && status["total"] > 0 %>
+          <% if status && status["total"] && status["total"] > 0 %>
             <%= (status["num"] * 100 / status["total"]).round %>%
           <% end %>
         </td>
-        <td class="process"><small class="queue"><%= status["options"] %></small></td>
+        <td class="process"><small class="queue"><%= status["options"] if status %></small></td>
         
       </tr>
     <% end %>
